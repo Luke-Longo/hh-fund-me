@@ -1,8 +1,8 @@
-const { network } = require("hardhat")
-const { networkConfig, developmentChains } = require("../helper-hardhat-config")
-const { verify } = require("../utils/verify")
+import { network } from "hardhat"
+import { networkConfig, developmentChains } from "../helper-hardhat-config"
+import { verify } from "../utils/verify"
 
-module.exports = async ({ getNamedAccounts, deployments }) => {
+export default async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
