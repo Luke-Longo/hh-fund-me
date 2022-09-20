@@ -1,13 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { network } from "hardhat";
-import { networkConfig } from "../helper-hardhat.config";
+import { networkConfig, developmentChains } from "../helper-hardhat.config";
+import { verify } from "../utils/verify";
 
 const deployFundMe = async (hre: HardhatRuntimeEnvironment) => {
     const { getNamedAccounts, deployments } = hre;
     const { deploy, log } = deployments;
     const { deployer } = await getNamedAccounts();
     const chainId = network.config.chainId;
-    // const name = network.name;
+    const name = network.name;
     let ethUsdPriceFeedAddress: string = "";
 
     // Could choose to store the network keys as chainIds and use const ethUsdPriceFeed = networkConfig[chainId].ethUsdPriceFeed;
@@ -24,14 +25,26 @@ const deployFundMe = async (hre: HardhatRuntimeEnvironment) => {
     }
 
     // this below will deploy the fundMe contract and any contract dependencies to the desired chainId/network being used. Once deployed you will be able to interact with the contract
-
+    const args = [ethUsdPriceFeedAddress];
     const fundMe = await deploy("FundMe", {
         from: deployer,
-        args: [ethUsdPriceFeedAddress], // will be the priceFeed address for the chain
+        args, // will be the priceFeed address for the chain
+        log: true,
+        waitConfirmations: networkConfig[name].blockConfirmations || 1,
     });
-    log(`FundMe deployed to: ${fundMe.address}`);
-    log("--------------------------------");
-    // when going for local host or hardhat network we want ot use a mock
+
+    if (
+        !developmentChains.includes(network.name) &&
+        process.env.ETHERSCAN_API_KEY
+    ) {
+        await verify(fundMe.address, args);
+        log(`FundMe deployed to: ${fundMe.address}`);
+        log("--------------------------------");
+        // when going for local host or hardhat network we want ot use a mock
+    } else {
+        log(`Local network detected, deployed to address ${fundMe.address}`);
+        log("--------------------------------");
+    }
 };
 
 export default deployFundMe;

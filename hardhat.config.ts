@@ -8,8 +8,6 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-deploy";
 
-const developmentChains = ["hardhat", "localhost"];
-
 const ALCHEMY_GOERLI_URL = process.env.ALCHEMY_GOERLI_URL || "";
 const ALCHEMY_PRIVATE_KEY = process.env.ALCHEMY_PRIVATE_KEY || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
