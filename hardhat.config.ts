@@ -21,6 +21,7 @@ const config: HardhatUserConfig = {
         goerli: {
             url: ALCHEMY_GOERLI_URL,
             accounts: [ALCHEMY_PRIVATE_KEY!],
+            chainId: 5,
         },
         localhost: {
             url: "http://127.0.0.1:8545/",
@@ -38,6 +39,14 @@ const config: HardhatUserConfig = {
         noColors: true,
         coinmarketcap: COINMARKETCAP_API_KEY,
         token: "ETH",
+    },
+    namedAccounts: {
+        deployer: {
+            default: 0,
+        },
+        user: {
+            default: 1,
+        },
     },
 };
 
