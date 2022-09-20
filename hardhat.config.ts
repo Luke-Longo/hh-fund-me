@@ -6,6 +6,7 @@ import "solidity-coverage";
 import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-solhint";
+import "hardhat-deploy";
 
 const developmentChains = ["hardhat", "localhost"];
 
@@ -26,7 +27,7 @@ const config: HardhatUserConfig = {
             chainId: 31337,
         },
     },
-    solidity: "0.8.17",
+    solidity: "0.8.8",
     etherscan: {
         apiKey: ETHERSCAN_API_KEY,
     },
