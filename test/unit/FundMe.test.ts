@@ -9,15 +9,19 @@ describe("FundMe", async function () {
   let deployer: SignerWithAddress;
   let mockV3Aggregator: MockV3Aggregator;
   const sendValue = ethers.utils.parseEther("1");
+  let accounts: SignerWithAddress[];
+  let account1: SignerWithAddress;
   beforeEach(async () => {
     // make sure the network is a development chain
     if (!developmentChains.includes(network.name)) {
       throw "you need to be on a development chain to run tests";
     }
     // gets the accounts from the hardhat network
-    const accounts = await ethers.getSigners();
+    accounts = await ethers.getSigners();
     // get the deployer account
     deployer = accounts[0];
+    // get a second account
+    account1 = accounts[1];
     // deploys the contract
     await deployments.fixture("all");
     // gets the deployed contract instance to interact with
@@ -48,8 +52,24 @@ describe("FundMe", async function () {
     it("Adds funder to funders array", async function () {
       // we are using the deployer to be the one to interact with the contracts via the ether.getContract function and passing the contract name and the deployer address as the signer
       await fundMe.fund({ value: sendValue });
-      const response = await fundMe.funders(0);
-      assert.equal(response, deployer.address);
+      const funder = await fundMe.funders(0);
+      assert.equal(funder, deployer.address);
+    });
+  });
+  describe("Withdraw", async function () {
+    beforeEach(async function () {
+      await fundMe.fund({ value: sendValue });
+    });
+    it("Should prevent non owner from withdrawing the funds from the contract", async function () {
+      await expect(fundMe.connect(account1).withdraw()).to.be.reverted;
+    });
+    it("Should allow the owner to withdraw and up the balance by the amount deposited", async function () {
+      const initialBalance = await deployer.getBalance();
+
+      await fundMe.withdraw();
+      const finalBalance = await deployer.getBalance();
+      const gas = await finalBalance.sub(initialBalance);
+      assert.equal(finalBalance.add(gas).toString(), initialBalance.toString());
     });
   });
 });
