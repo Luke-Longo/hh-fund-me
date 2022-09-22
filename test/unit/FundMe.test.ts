@@ -60,16 +60,46 @@ describe("FundMe", async function () {
     beforeEach(async function () {
       await fundMe.fund({ value: sendValue });
     });
-    it("Should prevent non owner from withdrawing the funds from the contract", async function () {
-      await expect(fundMe.connect(account1).withdraw()).to.be.reverted;
-    });
-    it("Should allow the owner to withdraw and up the balance by the amount deposited", async function () {
-      const initialBalance = await deployer.getBalance();
+    it("only allows the owner to withdraw", async function () {
+      // Arrange
+      const startingFundMeBalance = await fundMe.provider.getBalance(
+        fundMe.address
+      );
+      // These provide the same balance
+      // const startingFunderBalance = await deployer.getBalance();
+      const startingDeployerBalance = await fundMe.provider.getBalance(
+        deployer.address
+      );
+      // Act
+      const txRes = await fundMe.withdraw();
+      const txReceipt = await txRes.wait(1);
+      // Assert
 
-      await fundMe.withdraw();
-      const finalBalance = await deployer.getBalance();
-      const gas = await finalBalance.sub(initialBalance);
-      assert.equal(finalBalance.add(gas).toString(), initialBalance.toString());
+      const endingFundMeBalance = await fundMe.provider.getBalance(
+        fundMe.address
+      );
+      const endingDeployerBalance = await fundMe.provider.getBalance(
+        deployer.address
+      );
+      // can find gasCost with tx Receipt
+
+      assert.equal(endingFundMeBalance.toString(), "0");
+      assert.equal(
+        startingFundMeBalance.add(startingDeployerBalance).toString(),
+        endingDeployerBalance.add(gasCost).toString()
+      );
     });
+
+    // it("Should prevent non owner from withdrawing the funds from the contract", async function () {
+    //   await expect(fundMe.connect(account1).withdraw()).to.be.reverted;
+    // });
+    // it("Should allow the owner to withdraw and up the balance by the amount deposited", async function () {
+    //   const initialBalance = await deployer.getBalance();
+
+    //   await fundMe.withdraw();
+    //   const finalBalance = await deployer.getBalance();
+    //   const gas = await finalBalance.sub(initialBalance);
+    //   assert.equal(finalBalance.add(gas).toString(), initialBalance.toString());
+    // });
   });
 });
