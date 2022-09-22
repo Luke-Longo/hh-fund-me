@@ -32,7 +32,7 @@ describe("FundMe", async function () {
   describe("Constructor", async function () {
     it("sets the aggregator addresses correctly", async function () {
       // this function checks the price feed address and makes sure that the address is the same as the moc v3 deploye on the local hardahat network
-      const responseAddress = await fundMe.priceFeed();
+      const responseAddress = await fundMe.getPriceFeed();
       assert.equal(responseAddress, mockV3Aggregator.address);
     });
   });
@@ -46,13 +46,13 @@ describe("FundMe", async function () {
       await fundMe.fund({
         value: sendValue,
       });
-      const response = await fundMe.addressToAmountFunded(deployer.address);
+      const response = await fundMe.getAddressToAmountFunded(deployer.address);
       assert.equal(response.toString(), sendValue.toString());
     });
-    it("Adds funder to funders array", async function () {
+    it("Adds funder to s_funders array", async function () {
       // we are using the deployer to be the one to interact with the contracts via the ether.getContract function and passing the contract name and the deployer address as the signer
       await fundMe.fund({ value: sendValue });
-      const funder = await fundMe.funders(0);
+      const funder = await fundMe.getFunder(0);
       assert.equal(funder, deployer.address);
     });
   });
@@ -107,7 +107,7 @@ describe("FundMe", async function () {
       console.log("fundMeBalance", fundMeBalance.toString());
     });
 
-    it("allows us to withdraw with multiple funders", async function () {
+    it("allows us to withdraw with multiple getFunders", async function () {
       // arrange
       const startingFundMeBalance = await fundMe.provider.getBalance(
         fundMe.address
