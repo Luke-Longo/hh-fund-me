@@ -60,7 +60,7 @@ describe("FundMe", async function () {
     beforeEach(async function () {
       await fundMe.fund({ value: sendValue });
     });
-    it("only allows the owner to withdraw", async function () {
+    it("allows the owner to withdraw", async function () {
       // Arrange
       const startingFundMeBalance = await fundMe.provider.getBalance(
         fundMe.address
@@ -73,6 +73,13 @@ describe("FundMe", async function () {
       // Act
       const txRes = await fundMe.withdraw();
       const txReceipt = await txRes.wait(1);
+      // Mine const gasCost = txReceipt.gasUsed.mul(txRes.gasPrice as BigNumber);
+      // patricks way
+      const { gasUsed, effectiveGasPrice } = txReceipt;
+
+      const gasCost = gasUsed.mul(effectiveGasPrice);
+
+      console.log("gasCost", gasCost.toString());
       // Assert
 
       const endingFundMeBalance = await fundMe.provider.getBalance(
@@ -90,16 +97,47 @@ describe("FundMe", async function () {
       );
     });
 
-    // it("Should prevent non owner from withdrawing the funds from the contract", async function () {
-    //   await expect(fundMe.connect(account1).withdraw()).to.be.reverted;
-    // });
-    // it("Should allow the owner to withdraw and up the balance by the amount deposited", async function () {
-    //   const initialBalance = await deployer.getBalance();
+    beforeEach(async () => {
+      accounts.forEach(async (account, index) => {
+        if (index < 6) {
+          await fundMe.connect(account).fund({ value: sendValue });
+        }
+      });
+      const fundMeBalance = await fundMe.provider.getBalance(fundMe.address);
+      console.log("fundMeBalance", fundMeBalance.toString());
+    });
 
-    //   await fundMe.withdraw();
-    //   const finalBalance = await deployer.getBalance();
-    //   const gas = await finalBalance.sub(initialBalance);
-    //   assert.equal(finalBalance.add(gas).toString(), initialBalance.toString());
-    // });
+    it("allows us to withdraw with multiple funders", async function () {
+      // arrange
+      const startingFundMeBalance = await fundMe.provider.getBalance(
+        fundMe.address
+      );
+      const startingDeployerBalance = await fundMe.provider.getBalance(
+        deployer.address
+      );
+      // act
+      const txRes = await fundMe.withdraw();
+      const txReceipt = await txRes.wait(1);
+      const { gasUsed, effectiveGasPrice } = txReceipt;
+      const gasCost = gasUsed.mul(effectiveGasPrice);
+      // assert
+      const endingFundMeBalance = await fundMe.provider.getBalance(
+        fundMe.address
+      );
+      const endingDeployerBalance = await fundMe.provider.getBalance(
+        deployer.address
+      );
+      assert.equal(endingFundMeBalance.toString(), "0");
+      assert.equal(
+        startingFundMeBalance.add(startingDeployerBalance).toString(),
+        endingDeployerBalance.add(gasCost).toString()
+      );
+    });
+
+    it("prevents any account beside the deployer from initiating the withdraw function", async function () {
+      // arranged in before each
+      // act & assert
+      await expect(fundMe.connect(account1).withdraw()).to.be.reverted;
+    });
   });
 });
