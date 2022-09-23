@@ -3,12 +3,11 @@ import { getNamedAccounts, ethers } from "hardhat";
 async function main() {
   const { deployer } = await getNamedAccounts();
   const fundMe = await ethers.getContract("FundMe", deployer);
-  console.log("Funding the contract with .1 ether...");
-  const sendValue = ethers.utils.parseEther(".1");
-  const response = await fundMe.fund({ value: sendValue });
-  const receipt = await response.wait(1);
-  console.log("Contract funded");
-  console.log("Fund Interaction response: ", response);
+  console.log("Withdrawing the balance from the contract");
+  const tx = await fundMe.withdraw();
+  const receipt = await tx.wait(1);
+  console.log("Funds withdrawn");
+  console.log("Withdraw Interaction response: ", tx);
   console.log("Transaction receipt: ", receipt);
 }
 
